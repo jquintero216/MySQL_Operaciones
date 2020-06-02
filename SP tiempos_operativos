@@ -1,0 +1,27 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SP_TIEMPOS OPERATIVOS X TURNOS Y FECHA`(inicio DATETIME, fin DATETIME, maquina INT, turno INT)
+BEGIN
+	IF (turno <= 3) THEN
+		SELECT		db_operaciones.tb_estados.estados_desc,
+					SUM (db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo)
+		FROM		db_operaciones.tb_registro_operacion
+					INNER JOIN db_operaciones.tb_estados ON db_operaciones.tb_registro_operacion.estados_id = db_operaciones.tb_estados.estados_id
+					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
+		WHERE		db_operaciones.tb_registro_operacion.maquinas_id = maquina AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha >= inicio AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fin AND
+					db_operaciones.tb_registro_operacion.turno_id = turno
+		GROUP BY	db_operaciones.tb_estados.estados_desc
+		ORDER BY	SUM (db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo) DESC;
+	ELSEIF (turno > 3) THEN
+		SELECT		db_operaciones.tb_estados.estados_desc,
+					SUM (db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo)
+		FROM		db_operaciones.tb_registro_operacion
+					INNER JOIN db_operaciones.tb_estados ON db_operaciones.tb_registro_operacion.estados_id = db_operaciones.tb_estados.estados_id
+					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
+		WHERE		db_operaciones.tb_registro_operacion.maquinas_id = maquina AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha >= inicio AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fin
+		GROUP BY	db_operaciones.tb_estados.estados_desc
+		ORDER BY	SUM (db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo) DESC;
+	END IF;
+END
