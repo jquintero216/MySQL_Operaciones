@@ -1,10 +1,10 @@
 # Base de datos operaciones & confiabilidad MySQL
 Modelo de base de datos para calculo de indicadores de produccion, disponibilidad de máquina y confiabilidad de equipos basado es ISO-14240.
 Requisitos:
-MySQL Workbeach 6.0
-MySQL Server 5.0
-ER/One Datamodel
-Inductive Ignition SCADA Server Version: 7.9 o superior
+1. MySQL Workbeach 6.0
+2. MySQL Server 5.0
+3. ER/One Datamodel
+4. Inductive Ignition SCADA Server Version: 7.9 o superior
 *************************************************************
 # Modulos Ignition:
 1. Vision
