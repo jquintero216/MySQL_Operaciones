@@ -71,79 +71,41 @@ SELECT 	db_operaciones.tb_registro_operacion.registro_operacion_id,
           WHERE db_operaciones.tb_registro_operacion.registro_falla_fecha = "2020-11-16 14:20:45"
 		)
         ) 
-        AS Consumo
+        AS produccion_x_hora
 FROM	db_operaciones.tb_registro_operacion
-WHERE 	db_operaciones.tb_registro_operacion.registro_falla_fecha = "2020-11-16 14:20:47";
+WHERE 	db_operaciones.tb_registro_operacion.registro_falla_fecha = "2020-11-16 14:20:47" AND
+        db_operaciones.tb_registro_operacion.plantas_id = 1;
 /* query para calcular el diferencial entre la produccion por planta y la energia consumida */
 SELECT 	db_operaciones.tb_registro_operacion.registro_operacion_id,
 		db_operaciones.tb_registro_operacion.registro_operacion_energia_minuto,
-        db_operaciones.tb_registro_operacion.registro_operacion_produccion_hora
-        
-/* procedimiento almacenado para calcular los tiempos inoperativos de máquina por turno y fecha */
-CREATE PROCEDURE "SP_TIEMPOS INOPERATIVOS X TURNOS & FECHAS" (inicio DATETIME, fin DATETIME, maquina INT, turno INT)
-BEGIN
-	IF (turno <= 3) THEN
-		SELECT 		db_operaciones.tb_eventos.eventos_desc,
-					SUM (db_operaciones.tb_registro_operacion.registro_falla_tiempo_inoperativo)
-		FROM		db_operaciones.tb_registro_operacion
-					INNER JOIN db_operaciones.tb_eventos ON db_operaciones.tb_registro_operacion.eventos_id = db_operaciones.tb_eventos.eventos_id
-					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
-		WHERE		db_operaciones.tb_registro_operacion.maquinas_id = maquina AND
-					db_operaciones.tb_registro_operacion.registro_falla_fecha >= inicio AND
-					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fin AND
-					db_operaciones.tb_registro_operacion.turno_id = turno
-		GROUP BY	db_operaciones.tb_eventos.eventos_desc
-		ORDER BY 	SUM (db_operaciones.tb_registro_operacion.registro_falla_tiempo_inoperativo) DESC;
-	ELSEIF (turno > 3) THEN
-		SELECT 		db_operaciones.tb_eventos.eventos_desc,
-					SUM (db_operaciones.tb_registro_operacion.registro_falla_tiempo_inoperativo)
-		FROM		db_operaciones.tb_registro_operacion
-					INNER JOIN db_operaciones.tb_eventos ON db_operaciones.tb_registro_operacion.eventos_id = db_operaciones.tb_eventos.eventos_id
-					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
-		WHERE		db_operaciones.tb_registro_operacion.maquinas_id = maquina AND
-					db_operaciones.tb_registro_operacion.registro_falla_fecha >= inicio AND
-					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fin
-		GROUP BY	db_operaciones.tb_eventos.eventos_desc
-		ORDER BY 	SUM (db_operaciones.tb_registro_operacion.registro_falla_tiempo_inoperativo) DESC;  
-    END IF;
-END
-/* procedimiento almacenado para calcular los tiempos operativos de máquina por turno y fecha */
-CREATE PROCEDURE "SP_TIEMPOS OPERATIVOS X TURNOS Y FECHA" (inicio DATETIME, fin DATETIME, maquina INT, turno INT)
-BEGIN
-	IF (turno <= 3) THEN
-		SELECT		db_operaciones.tb_estados.estados_desc,
-					SUM (db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo)
-		FROM		db_operaciones.tb_registro_operacion
-					INNER JOIN db_operaciones.tb_estados ON db_operaciones.tb_registro_operacion.estados_id = db_operaciones.tb_estados.estados_id
-					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
-		WHERE		db_operaciones.tb_registro_operacion.maquinas_id = maquina AND
-					db_operaciones.tb_registro_operacion.registro_falla_fecha >= inicio AND
-					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fin AND
-					db_operaciones.tb_registro_operacion.turno_id = turno
-		GROUP BY	db_operaciones.tb_estados.estados_desc
-		ORDER BY	SUM (db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo)
-	ELSEIF (turno > 3) THEN
-		SELECT		db_operaciones.tb_estados.estados_desc,
-					SUM (db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo)
-		FROM		db_operaciones.tb_registro_operacion
-					INNER JOIN db_operaciones.tb_estados ON db_operaciones.tb_registro_operacion.estados_id = db_operaciones.tb_estados.estados_id
-					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
-		WHERE		db_operaciones.tb_registro_operacion.maquinas_id = maquina AND
-					db_operaciones.tb_registro_operacion.registro_falla_fecha >= inicio AND
-					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fin
-		GROUP BY	db_operaciones.tb_estados.estados_desc
-		ORDER BY	SUM (db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo) DESC;
-	END IF;
-END
-/* procedimiento almacenado para calcula la produccion por turno de cada planta */
-CREATE PROCEDURE "SP_PRODUCCION DE PLANTAS X TURNO Y FECHA" (inicio DATETIME, fin DATETIME, planta INT, turno INT)
-BEGIN
-	IF (turno <= 3) THEN
-		SELECT 		db_operaciones.tb_registro_operacion.registro_operacion_id,
-					SUM(db_operaciones.tb_registro_operacion.registro_operacion_produccion_hora)
-		FROM		db_operaciones.tb_registro_operacion
-		WHERE		db_operaciones.tb_registro_operacion.plantas_id = planta AND
-					db_operaciones.tb_registro_operacion.turno_id = turno AND
-                    db_operaciones.tb_registro_operacion.registro_falla_fecha >= inicio AND
-                    db_operaciones.tb_registro_operacion.registro_falla_fecha <= fin
-	ELSE IF	(turno > 3)
+        db_operaciones.tb_plantas.plantas_desc,
+        (db_operaciones.tb_registro_operacion.registro_operacion_energia_minuto / 
+		(
+		SELECT db_operaciones.tb_registro_operacion.registro_operacion_produccion_hora 
+		FROM db_operaciones.tb_registro_operacion 
+		WHERE db_operaciones.tb_registro_operacion.registro_falla_fecha = "2020-11-16 14:20:45"
+		)
+        ) 
+        AS energia_x_tonelada
+FROM	db_operaciones.tb_registro_operacion
+		INNER JOIN db_operaciones.tb_plantas ON db_operaciones.tb_registro_operacion.plantas_id = db_operaciones.tb_plantas.plantas_id
+WHERE 	db_operaciones.tb_registro_operacion.registro_falla_fecha = "2020-11-16 14:20:47" AND
+        db_operaciones.tb_registro_operacion.plantas_id = 1;        
+/* query para mostrar el calculo consolidado de estados no operativos */
+SELECT 		db_operaciones.tb_estados.estados_desc,
+			db_operaciones.tb_maquinas.maquinas_desc,
+			SUM(db_operaciones.tb_registro_operacion.registro_falla_tiempo_inoperativo) AS consolidado
+FROM		db_operaciones.tb_registro_operacion
+			INNER JOIN db_operaciones.tb_estados ON db_operaciones.tb_registro_operacion.estados_id = db_operaciones.tb_estados.estados_id
+			INNER JOIN db_operaciones.tb_maquinas ON db_operaciones.tb_registro_operacion.maquinas_id = db_operaciones.tb_maquinas.maquinas_id
+WHERE		db_operaciones.tb_registro_operacion.turno_id = 1
+GROUP BY	db_operaciones.tb_registro_operacion.maquinas_id;
+/* query para mostrar el calculo consolidado de estados operativos */
+SELECT 		db_operaciones.tb_estados.estados_desc,
+			db_operaciones.tb_maquinas.maquinas_desc,
+            SUM(db_operaciones.tb_registro_operacion.registro_operacion_tiempo_operativo) AS consolidado
+FROM		db_operaciones.tb_registro_operacion
+			INNER JOIN db_operaciones.tb_estados ON db_operaciones.tb_registro_operacion.estados_id = db_operaciones.tb_estados.estados_id
+			INNER JOIN db_operaciones.tb_maquinas ON db_operaciones.tb_registro_operacion.maquinas_id = db_operaciones.tb_maquinas.maquinas_id
+WHERE		db_operaciones.tb_registro_operacion.turno_id = 1
+GROUP BY	db_operaciones.tb_registro_operacion.maquinas_id;
