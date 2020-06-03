@@ -5,6 +5,7 @@ MySQL Workbeach 6.0
 MySQL Server 5.0
 ER/One Datamodel
 Inductive Ignition SCADA Server Version: 7.9 o superior
+*************************************************************
 Modulos Ignition:
 1. Vision
 2. OPC UA
