@@ -1,0 +1,31 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SP_CONSUMO_PLANTA_X_TURNO`(fechainicio DATETIME, fechafinal DATETIME, planta INT)
+BEGIN
+	IF (planta = 1) THEN
+		SELECT 		db_operaciones.tb_turnos.turno_desc,
+					SUM(db_operaciones.tb_registro_operacion.registro_operacion_energia_minuto) AS consumo_x_turno
+		FROM 		db_operaciones.tb_registro_operacion
+					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
+		WHERE 		db_operaciones.tb_registro_operacion.plantas_id = 1 AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha >= fechainicio AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fechafinal
+		GROUP BY	db_operaciones.tb_turnos.turno_desc;
+	ELSEIF (planta = 2) THEN
+		SELECT 		db_operaciones.tb_turnos.turno_desc,
+					SUM(db_operaciones.tb_registro_operacion.registro_operacion_energia_minuto) AS consumo_x_turno
+		FROM 		db_operaciones.tb_registro_operacion
+					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
+		WHERE 		db_operaciones.tb_registro_operacion.plantas_id = 2 AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha >= fechainicio AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fechafinal
+		GROUP BY	db_operaciones.tb_turnos.turno_desc;
+	ELSEIF (planta = 3) THEN
+    	SELECT 		db_operaciones.tb_turnos.turno_desc,
+					SUM(db_operaciones.tb_registro_operacion.registro_operacion_energia_minuto) AS consumo_x_turno
+		FROM 		db_operaciones.tb_registro_operacion
+					INNER JOIN db_operaciones.tb_turnos ON db_operaciones.tb_registro_operacion.turno_id = db_operaciones.tb_turnos.turno_id
+		WHERE 		db_operaciones.tb_registro_operacion.plantas_id = 3 AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha >= fechainicio AND
+					db_operaciones.tb_registro_operacion.registro_falla_fecha <= fechafinal
+		GROUP BY	db_operaciones.tb_turnos.turno_desc;
+	END IF;
+END
